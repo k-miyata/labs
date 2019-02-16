@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>File upload with Service Workers</title>
+  <link rel="stylesheet" href="main.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <h1>File upload with Service Workers</h1>
+  <nav>
+    <ul>
+      <li><a href="/">Top page</a></li>
+      <li><a href="another.html">Another page</a></li>
+    </ul>
+  </nav>
+  <div>
+    <input type="file" id="file">
+  </div>
+  <div>
+    <button type="button" id="upload">Upload</button>
+    <button type="button" id="upload-sw" disabled>Upload with the Service Worker</button>
+  </div>
+  <div>
+    <label><input type="checkbox" id="notify" disabled>Enable notifications</label>
+    <div id="status"></div>
+  </div>
+  <div id="response"></div>
+</body>
+</html>
