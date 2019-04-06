@@ -1,0 +1,9 @@
+body {
+  font-family: system-ui;
+  font-size: 1rem;
+}
+
+#message {
+  width: 20em;
+  font-size: 1em;
+}
