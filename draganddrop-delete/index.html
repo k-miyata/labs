@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>ドラッグアンドドロップで削除</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: hsl(0, 0%, 90%);
+      font-family: system-ui;
+    }
+
+    #wrap {
+      display: inline-block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #wrap::after {
+      display: block;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: hsl(0, 0%, 90%);
+      transform: translateY(100%);
+      transition: all .2s ease-out;
+      content: "";
+    }
+
+    #wrap.removed::after {
+      transform: translateY(0);
+    }
+
+    #item {
+      display: inline-block;
+      margin: 1rem 2rem;
+      padding: 1em 2em;
+      border-radius: .5em;
+      box-shadow: 0 0 2px hsla(0, 0%, 0%, .15), 0 2px 16px hsla(0, 0%, 0%, .2);
+      background-color: hsl(0, 0%, 100%);
+      font-size: 1.5rem;
+    }
+
+    #trash {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 4rem 2rem;
+      box-sizing: border-box;
+      background-color: hsl(0, 80%, 84%);
+      color: hsl(0, 70%, 45%);
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+      outline: transparent solid 0;
+      transform: translateY(100%);
+      transition: all .2s ease-out;
+    }
+
+    #trash.shown {
+      transform: translateY(0);
+    }
+
+    #trash.draggedover {
+      outline-color: hsl(0, 70%, 45%);
+      outline-width: .25em;
+      outline-offset: -.5em;
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const wrapEl = document.getElementById('wrap');
+      const itemEl = document.getElementById('item');
+      const trashEl = document.getElementById('trash');
+
+      itemEl.addEventListener('dragstart', () => {
+        trashEl.classList.add('shown');
+      });
+
+      itemEl.addEventListener('dragend', () => {
+        trashEl.classList.remove('shown');
+      });
+
+      trashEl.addEventListener('dragenter', () => {
+        trashEl.classList.add('draggedover');
+      });
+
+      trashEl.addEventListener('dragover', event => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+      });
+
+      trashEl.addEventListener('dragleave', () => {
+        trashEl.classList.remove('draggedover');
+      });
+
+      trashEl.addEventListener('drop', event => {
+        event.preventDefault();
+        wrapEl.classList.add('removed');
+        setTimeout(() => { itemEl.remove() }, 200);
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1>ドラッグアンドドロップで削除</h1>
+  <div id="wrap">
+    <div id="item" draggable="true">削除したい項目</div>
+  </div>
+  <div id="trash">削除</div>
+</body>
+</html>
