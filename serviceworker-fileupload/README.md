@@ -1,4 +1,4 @@
-# File upload with Service Workers
+# File Upload with Service Workers
 
 Test of file upload with Service Workers.
 
@@ -14,8 +14,8 @@ Service Worker を使って、サーバへのファイルアップロードを�
 
 UI とは異なるスレッドでアップロードを実行します。アップロードが完了すると、以下の 3 通りの方法でサーバからのレスポンスを返し、それを画面上に表示します。
 
-- **MessageChannel** — MessageChannel を使って相手とデータの送受信を行える 2 つの MessagePort を作成し、往路は UI から Service Worker へ、復路は Service Worker から UI へとデータを流します。ページ遷移等で UI のライフサイクルが破棄されると、Service Worker からの受信はできなくなります。
-- **Service Worker から全クライアントへの postMessage** — Service Worker をコントロールしている全クライアントへメッセージを送信します。コントロール状態でなければイベントを購読できませんが、コントロール状態であればページ遷移後もイベントを購読することで、Service Worker からのメッセージを受信できます。
+- **`MessageChannel`** — `MessageChannel` を使って相手とデータの送受信を行える 2 つの `MessagePort` を作成し、往路は UI から Service Worker へ、復路は Service Worker から UI へとデータを流します。ページ遷移等で UI のライフサイクルが破棄されると、Service Worker からの受信はできなくなります。
+- **Service Worker から全クライアントへの `postMessage`** — Service Worker をコントロールしている全クライアントへメッセージを送信します。コントロール状態でなければイベントを購読できませんが、コントロール状態であればページ遷移後もイベントを購読することで、Service Worker からのメッセージを受信できます。
 - **通知** — Notifications API を使って、ブラウザからユーザへ通知を送信します。あらかじめユーザからの許可を受けていれば、たとえウインドウを閉じてしまっても、アップロードが完了したことを Service Worker からの通知によって知ることができます。
 
 ## 準備
@@ -34,4 +34,4 @@ UI とは異なるスレッドでアップロードを実行します。アッ�
 
 ## License
 
-MIT
+See [LICENSE](../LICENSE).
