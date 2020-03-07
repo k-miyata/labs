@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>File Download with Service Workers</title>
+  <script src="/main.js" async></script>
+</head>
+<body>
+  <h1>File Download with Service Workers</h1>
+  <h2>Hyperlinks</h2>
+  <ul>
+    <li><a class="link" href="/file?size=1" download>Download 1 MB</a></li>
+    <li><a class="link" href="/file?size=32" download>Download 32 MB</a></li>
+    <li><a class="link" href="/file?size=256" download>Download 256 MB</a></li>
+    <li><a class="link" href="/file?size=1024" download>Download 1024 MB (1 GB)</a></li>
+    <li><a class="link" href="/file?size=4096" download>Download 4096 MB (4 GB)</a></li>
+  </ul>
+  <p><button id="link-all">Download all files</button></p>
+  <div id="link-status"></div>
+  <h2>Ajax (XMLHttpRequest + Blob)</h2>
+  <ul>
+    <li><button class="ajax" data-size="1">Download 1 MB</button></li>
+    <li><button class="ajax" data-size="32">Download 32 MB</button></li>
+    <li><button class="ajax" data-size="256">Download 256 MB</button></li>
+    <li><button class="ajax" data-size="1024">Download 1024 MB (1 GB)</button></li>
+    <li><button class="ajax" data-size="4096">Download 4096 MB (4 GB)</button></li>
+  </ul>
+  <p><button id="ajax-all">Download all files</button></p>
+  <div id="ajax-status"></div>
+  <h2>The Service Worker (Fetch + Streams)</h2>
+  <ul>
+    <li><button class="sw" data-size="1">Download 1 MB</button></li>
+    <li><button class="sw" data-size="32">Download 32 MB</button></li>
+    <li><button class="sw" data-size="256">Download 256 MB</button></li>
+    <li><button class="sw" data-size="1024">Download 1024 MB (1 GB)</button></li>
+    <li><button class="sw" data-size="4096">Download 4096 MB (4 GB)</button></li>
+  </ul>
+  <p><button id="sw-all" data-sw>Download all files</button></p>
+  <div id="sw-status"></div>
+</body>
+</html>
