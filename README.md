@@ -1,2 +1,2 @@
-# playground
-@k-miyata's playground for better development
+# labs
+@k-miyata's labs for better development
