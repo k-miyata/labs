@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>A Custom Context Menu That Respects Default</title>
+    <style>
+      body {
+        margin-right: 0;
+        margin-left: 0;
+        padding-right: 5%;
+        padding-left: 5%;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      /**
+       * Sample Item Styles
+       */
+
+      .heading {
+        margin-block-start: 2em;
+        margin-block-end: 1em;
+        color: hsla(0, 0%, 0%, 0.75);
+        font-size: 2rem;
+        font-weight: 300;
+      }
+
+      .collection {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
+        gap: 32px;
+      }
+
+      .item {
+        display: grid;
+        row-gap: 8px;
+        padding: 16px;
+        border-radius: 8px;
+        background-color: hsla(0, 0%, 0%, 0.05);
+      }
+
+      .thumbnail {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+
+      .name {
+        margin-top: 8px;
+        margin-bottom: 8px;
+        padding: 0;
+        font-size: 1.5rem;
+        font-weight: normal;
+      }
+
+      .meta {
+        color: hsla(0, 0%, 0%, 0.65);
+        font-size: 0.875rem;
+      }
+
+      .meta-value {
+        font-weight: 600;
+      }
+
+      .meta-link {
+        color: inherit;
+      }
+
+      .meta-link:active {
+        background-color: hsla(0, 0%, 0%, 0.1);
+      }
+
+      .author {
+        font-style: normal;
+      }
+
+      .modified {
+        margin: 0;
+        padding: 0;
+      }
+
+      /**
+       * Context Menu Styles
+       */
+
+      [data-context-menu-container] {
+        --context-menu-top: auto;
+        --context-menu-left: auto;
+      }
+
+      /* Indicates the context menu target. */
+      [data-context-menu-container].context-menu-open
+        [data-context-menu-target] {
+        box-shadow: 0 0 0 0.25rem hsla(214, 100%, 76%, 0.6);
+      }
+
+      .context-menu-background {
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+      }
+
+      .context-menu-background:focus {
+        outline: none;
+      }
+
+      .context-menu-close-label {
+        visibility: hidden;
+        position: absolute;
+        top: calc(
+          var(--context-menu-top) -
+            (0.75rem * 1.25 + (0.25em + 1px + 0.25rem) * 2)
+        );
+        left: calc(var(--context-menu-left) + 2px);
+        padding: 0.25em 0.5em;
+        border: 1px solid hsla(0, 0%, 15%, 0.1);
+        border-radius: 0.375em;
+        background-color: hsla(0, 0%, 100%, 0.75);
+        -webkit-backdrop-filter: blur(8px) saturate(110%);
+        backdrop-filter: blur(8px) saturate(110%);
+        color: hsl(0, 0%, 40%);
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.25;
+        cursor: default;
+      }
+
+      .context-menu-close-label:hover {
+        background-color: hsla(0, 0%, 96%, 0.9);
+      }
+
+      .context-menu-close-label:active {
+        background-color: hsla(0, 0%, 92%, 0.95);
+        color: hsl(0, 0%, 36%);
+      }
+
+      /* Shows the button when the background as the closure is focused. */
+      .context-menu-background:focus .context-menu-close-label {
+        visibility: visible;
+        border-color: hsl(214, 100%, 76%);
+        box-shadow: 0 0 0 0.25rem hsla(214, 100%, 76%, 0.6);
+      }
+
+      /*
+        Sets the margin on the left side so that when the context menu is opened
+        and the user right-clicks again, the browser context menu for the
+        element below is opened.
+      */
+      .context-menu {
+        display: none;
+        position: fixed;
+        top: var(--context-menu-top);
+        left: var(--context-menu-left);
+        z-index: 1;
+        margin: -0.25rem 0 0 2px;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        background-color: hsla(0, 0%, 100%, 0.75);
+        -webkit-backdrop-filter: blur(12px) saturate(120%);
+        backdrop-filter: blur(12px) saturate(120%);
+        box-shadow: 0 0 1px hsla(0, 0%, 0%, 0.2),
+          0 2px 8px hsla(0, 0%, 0%, 0.15);
+        list-style-type: none;
+      }
+
+      [data-context-menu-container].context-menu-open .context-menu-background,
+      [data-context-menu-container].context-menu-open .context-menu {
+        display: block;
+      }
+
+      .context-menu-button {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding-block-start: 0.5em;
+        padding-block-end: 0.5em;
+        padding-inline-start: 1em;
+        padding-inline-end: 1em;
+        border: 0;
+        border-radius: 0.25em;
+        background-color: transparent;
+        color: hsla(0, 0%, 0%, 0.75);
+        font-size: 0.9375rem;
+        text-align: start;
+        appearance: none;
+      }
+
+      .context-menu-button:hover {
+        background-color: hsla(0, 0%, 0%, 0.05);
+      }
+
+      .context-menu-button:active {
+        background-color: hsla(0, 0%, 0%, 0.1);
+        color: hsla(0, 0%, 0%, 0.85);
+      }
+
+      /* Emphasizes the destructive action. */
+      .destructive {
+        color: hsla(0, 100%, 40%, 0.75);
+      }
+
+      .destructive:active {
+        color: hsla(0, 100%, 35%, 0.85);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sample Items -->
+    <h1 class="heading">Photos</h1>
+    <div class="collection">
+      <div data-context-menu-container data-context-menu-interval="">
+        <article class="item" data-context-menu-target>
+          <div>
+            <img
+              class="thumbnail"
+              src="https://picsum.photos/300/200?random=1"
+              width="300"
+              height="200"
+              alt="Thumbnail 1"
+            >
+          </div>
+          <h2 class="name">Sample Photo 1.jpg</h2>
+          <address class="meta author">
+            Uploaded by
+            <a
+              class="meta-value meta-link"
+              href="https://en.wikipedia.org/wiki/John_Smith"
+            >
+              John Smith
+            </a>
+          </address>
+          <p class="meta modified">
+            Last Modified on
+            <time class="meta-value" datetime="2021-03-15">Mar 15, 2021</time>
+          </p>
+        </article>
+      </div>
+      <div data-context-menu-container data-context-menu-interval="">
+        <article class="item" data-context-menu-target>
+          <div>
+            <img
+              class="thumbnail"
+              src="https://picsum.photos/300/200?random=2"
+              width="300"
+              height="200"
+              alt="Thumbnail 2"
+            >
+          </div>
+          <h2 class="name">Sample Photo 2.jpg</h2>
+          <address class="meta author">
+            Uploaded by
+            <a
+              class="meta-value meta-link"
+              href="https://en.wikipedia.org/wiki/John_Smith"
+            >
+              John Smith
+            </a>
+          </address>
+          <p class="meta modified">
+            Last Modified on
+            <time class="meta-value" datetime="2021-04-01">Apr 1, 2021</time>
+          </p>
+        </article>
+      </div>
+    </div>
+
+    <!-- The Context Menu Template -->
+    <template data-context-menu-template>
+      <!--
+        Renders the background to close the context menu on a click. This is
+        intended that when the context menu is opened, the UI goes into the
+        one-off mode.
+      -->
+      <div class="context-menu-background" tabindex="0" role="button">
+        <div class="context-menu-close-label">Close Menu</div>
+      </div>
+
+      <ul class="context-menu" role="menu">
+        <li role="none">
+          <button class="context-menu-button" type="button" role="menuitem">
+            Edit
+          </button>
+        </li>
+        <li role="none">
+          <button class="context-menu-button" type="button" role="menuitem">
+            Download
+          </button>
+        </li>
+        <li role="none">
+          <button
+            class="context-menu-button destructive"
+            type="button"
+            role="menuitem"
+          >
+            Delete
+          </button>
+        </li>
+      </ul>
+    </template>
+
+    <script>
+      "use strict";
+
+      const CONTEXT_MENU_CONTAINER_QUERY = "[data-context-menu-container]";
+      const CONTEXT_MENU_TEMPLATE_QUERY = "[data-context-menu-template]";
+      const CONTEXT_MENU_TARGET_QUERY = "[data-context-menu-target]";
+      const CONTEXT_MENU_BACKGROUND_QUERY = ".context-menu-background";
+      const CONTEXT_MENU_BUTTON_QUERY = ".context-menu-button";
+
+      const CONTEXT_MENU_OPEN_CLASS_NAME = "context-menu-open";
+
+      const CONTEXT_MENU_INTERVAL_DATA_ATTRIBUTE = "contextMenuInterval";
+      const CONTEXT_MENU_INTERVAL_TIME = 600; // milliseconds
+
+      /**
+       * @param {Element} element
+       * @returns {Element} The closest context menu container to the element
+       */
+      function getClosestContextMenuContainerTo(element) {
+        return element.closest(CONTEXT_MENU_CONTAINER_QUERY);
+      }
+
+      /**
+       * @returns {NodeListOf<Element>} Context menu container elements
+       */
+      function getContextMenuContainers() {
+        return document.querySelectorAll(CONTEXT_MENU_CONTAINER_QUERY);
+      }
+
+      /**
+       * @returns {Element} The context menu template
+       */
+      function getContextMenuTemplate() {
+        return document.querySelector(CONTEXT_MENU_TEMPLATE_QUERY);
+      }
+
+      /**
+       * @returns {NodeListOf<Element>} Context menu target elements
+       */
+      function getContextMenuTargets() {
+        return document.querySelectorAll(CONTEXT_MENU_TARGET_QUERY);
+      }
+
+      /**
+       * @param {(Element|DocumentFragment)} element
+       * @returns {Element} A context menu background
+       */
+      function getContextMenuBackgroundFrom(element) {
+        return element.querySelector(CONTEXT_MENU_BACKGROUND_QUERY);
+      }
+
+      /**
+       * @param {(Element|DocumentFragment)} element
+       * @returns {NodeListOf<Element>} Context menu button elements
+       */
+       function getContextMenuButtonsFrom(element) {
+        return element.querySelectorAll(CONTEXT_MENU_BUTTON_QUERY);
+      }
+
+      /**
+       * @param {Element} element A context menu container
+       */
+      function addContextMenuOpenClass(element) {
+        element.classList.add(CONTEXT_MENU_OPEN_CLASS_NAME);
+      }
+
+      /**
+       * @param {Element} element A context menu container
+       */
+      function removeContextMenuOpenClass(element) {
+        element.classList.remove(CONTEXT_MENU_OPEN_CLASS_NAME);
+      }
+
+      /**
+       * @param {Element} element A context menu container
+       * @returns {number} The timer ID
+       */
+      function getContextMenuIntervalDataAttribute(element) {
+        return parseInt(
+          element.dataset[CONTEXT_MENU_INTERVAL_DATA_ATTRIBUTE] || 0,
+          10
+        );
+      }
+
+      /**
+       * @param {Element} element A context menu container
+       * @param {(string|number)} value A timer ID
+       */
+      function setContextMenuIntervalDataAttribute(element, value) {
+        element.dataset[CONTEXT_MENU_INTERVAL_DATA_ATTRIBUTE] = value;
+      }
+
+      /**
+       * @param {Element} element A context menu container
+       */
+       function unsetContextMenuIntervalDataAttribute(element) {
+        element.dataset[CONTEXT_MENU_INTERVAL_DATA_ATTRIBUTE] = "";
+      }
+
+      /**
+       * Returns whether the context menu is in the inerval. If true, it means
+       * that the user calls `contextmenu` event twice as one semantic action,
+       * e.g., a double-right-click.
+       * @param {Element} container
+       * @returns {boolean} Whether the context menu is in the inerval
+       */
+      function isContextMenuInInterval(container) {
+        return !!getContextMenuIntervalDataAttribute(container);
+      }
+
+      /**
+       * Sets the context menu interval for waiting the second `contextmenu`
+       * event call from the user.
+       * @param {Element} container
+       */
+      function setContextMenuInterval(container) {
+        clearAllContextMenuIntervals();
+        setContextMenuIntervalDataAttribute(
+          container,
+          setTimeout(() => {
+            unsetContextMenuIntervalDataAttribute(container);
+          }, CONTEXT_MENU_INTERVAL_TIME)
+        );
+      }
+
+      /**
+       * Clears the all context menu intervals to complete a semantic action.
+       * For example, when the user calls an action by clicking a context menu
+       * button or requests the browser context menu by double-right-clicking.
+       */
+      function clearAllContextMenuIntervals() {
+        getContextMenuContainers().forEach(container => {
+          clearTimeout(getContextMenuIntervalDataAttribute(container));
+          unsetContextMenuIntervalDataAttribute(container);
+        });
+      }
+
+      /**
+       * Opens the context menu on the `contextmenu` event of a context menu
+       * target.
+       * @param {MouseEvent} event The `contextmenu` event of a target
+       */
+      function openContextMenu(event) {
+        const container = getClosestContextMenuContainerTo(event.currentTarget);
+        if (isContextMenuInInterval(container)) {
+          // If the context menu is in the interval, i.e., if the user
+          // double-right-clicks, the UI does not reopen it and opens the
+          // browser context menu for the element below. Note that the context
+          // menu is already closed by the `mousedown` event of the background
+          // when this function is executed. The reason why the interval is
+          // time-limited is to avoid mode errors caused by the mode that the
+          // context menu turns on.
+          clearAllContextMenuIntervals();
+          return;
+        }
+
+        // Prevents the browser context menu.
+        event.preventDefault();
+
+        const containerStyle = container.style;
+        containerStyle.setProperty("--context-menu-top", `${event.clientY}px`);
+        containerStyle.setProperty("--context-menu-left", `${event.clientX}px`);
+        addContextMenuOpenClass(container);
+        setContextMenuInterval(container);
+      }
+
+      /**
+       * Closes the context menu of the target containing the event target
+       * element.
+       * @param {MouseEvent} event The trigger of a descendant element
+       */
+      function closeContextMenu(event) {
+        // Prevents the behavior caused by this event after the context menu is
+        // closed. This is intended that the action to close the context menu
+        // (click) is for leaving the mode, and not for the elements below.
+        event.preventDefault();
+
+        removeContextMenuOpenClass(
+          getClosestContextMenuContainerTo(event.currentTarget)
+        );
+      }
+
+      /**
+       * Closes the context menu and calls the action.
+       * @param {MouseEvent} event The `click` event of a context menu button
+       */
+      function callAction(event) {
+        clearAllContextMenuIntervals();
+        closeContextMenu(event);
+
+        // Will call the action here, e.g., editItem(), downloadItem(), and
+        // deleteItem().
+      }
+
+      /**
+       * Appends context menu elements cloned from the template to target
+       * elements.
+       */
+      function loadContextMenus() {
+        const template = getContextMenuTemplate();
+        getContextMenuTargets().forEach(target => {
+          const contextMenu = template.content.cloneNode(true);
+
+          // Add the closure to the background and the buttons.
+          getContextMenuBackgroundFrom(contextMenu).addEventListener(
+            "mousedown",
+            closeContextMenu
+          );
+          getContextMenuButtonsFrom(contextMenu).forEach(button => {
+            button.addEventListener("click", callAction);
+          });
+
+          getClosestContextMenuContainerTo(target).appendChild(contextMenu);
+          target.addEventListener("contextmenu", openContextMenu);
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", loadContextMenus);
+    </script>
+  </body>
+</html>
