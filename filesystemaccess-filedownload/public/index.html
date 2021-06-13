@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Multiple File Download with File System Access API</title>
+    <link rel="modulepreload" href="/elements.js">
+    <link rel="modulepreload" href="/folder.js">
+    <link rel="modulepreload" href="/file.js">
+    <link rel="modulepreload" href="/progress.js">
+    <style>
+      body {
+        font-family: system-ui;
+      }
+    </style>
+    <script type="module">
+      import { loadCustomElementContents } from "/elements.js";
+      loadCustomElementContents(document, ["x-folder"]);
+    </script>
+    <script type="module" src="/folder.js"></script>
+    <script type="module" src="/file.js"></script>
+    <script type="module" src="/progress.js"></script>
+  </head>
+  <body>
+    <h1>Multiple File Download with File System Access API</h1>
+    <p>
+      Download each of files and write directly to the user's local device. No
+      zip compression.
+    </p>
+    <x-folder name="Root Folder"></x-folder>
+    <template id="x-folder">
+      <x-folder>
+        <template shadowroot="open">
+          <style>
+            :host {
+              display: block;
+              margin-block-start: 0.5em;
+              margin-block-end: 0.5em;
+              border-inline-start: 1px solid hsl(0deg 0% 0% / 0.5);
+            }
+
+            :host(:nth-child(even)) {
+              background-color: hsl(0deg 0% 0% / 0.075);
+            }
+
+            :host-context(x-folder) {
+              margin-inline-start: 1.5em;
+            }
+          </style>
+          📁
+          <label>
+            Name:
+            <input name="name" type="text">
+          </label>
+          <button id="folder-addition" type="button">Add a Folder</button>
+          <button id="file-addition" type="button">Add a File</button>
+          <button id="download" type="button" disabled>Download</button>
+          <x-progress></x-progress>
+          <slot></slot>
+        </template>
+      </x-folder>
+    </template>
+    <template id="x-file">
+      <x-file>
+        <template shadowroot="open">
+          <style>
+            :host {
+              display: block;
+            }
+
+            :host(:nth-child(even)) {
+              background-color: hsl(0deg 0% 0% / 0.075);
+            }
+
+            :host-context(x-folder) {
+              margin-inline-start: 1.5em;
+            }
+          </style>
+          📄
+          <label>
+            Name:
+            <input name="name" type="text">
+          </label>
+          <label>
+            Size:
+            <input name="size" type="number"> MB
+          </label>
+          <x-progress id="fetching">Fetched</x-progress>
+          <x-progress id="writing">Wrote</x-progress>
+        </template>
+      </x-file>
+    </template>
+    <template id="x-progress">
+      <x-progress value="0">
+        <template shadowroot="open">
+          <style>
+            :host {
+              display: inline-block;
+            }
+
+            #percentage {
+              display: inline-block;
+              width: 4ch;
+              font-family: "SF Mono", monospace;
+              text-align: end;
+            }
+          </style>
+          <progress></progress>
+          <span id="percentage"></span>
+          <slot></slot>
+        </template>
+      </x-progress>
+    </template>
+  </body>
+</html>
