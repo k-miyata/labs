@@ -1,4 +1,4 @@
-# Multiple File Download with File System Access API
+# Multiple File Download with the File System Access API
 
 Download each of files and write directly to the user's local device. No zip
 compression.
@@ -17,7 +17,6 @@ compression.
 
 ## ToDo
 
-- [ ] Explaining the code
 - [ ] Aborting downloads
 - [ ] Handling errors
 
