@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "snowpack dev",
+    "check": "svelte-check",
+    "lint": "prettier --check .",
+    "fix": "prettier --write ."
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.10.1",
+    "svelte": "^3.46.4"
+  },
+  "devDependencies": {
+    "@snowpack/plugin-svelte": "^3.7.0",
+    "@tsconfig/svelte": "^3.0.0",
+    "@types/snowpack-env": "^2.3.4",
+    "prettier": "^2.5.1",
+    "prettier-plugin-svelte": "^2.6.0",
+    "snowpack": "^3.8.8",
+    "svelte-check": "^2.4.3",
+    "typescript": "~4.5.5"
+  }
+}
