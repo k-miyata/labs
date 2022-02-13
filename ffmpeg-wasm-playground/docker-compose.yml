@@ -1,0 +1,11 @@
+version: "3"
+services:
+  node:
+    image: node:17.4-bullseye-slim
+    environment:
+      - PORT=${PORT:-8080}
+    ports:
+      - ${PORT:-8080}:${PORT:-8080}
+    volumes:
+      - .:/ffmpeg-wasm-playground
+    working_dir: /ffmpeg-wasm-playground
